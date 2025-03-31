@@ -1,0 +1,189 @@
+<!-- public/admin.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Self-Destructing Notes</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>Admin Dashboard</h2>
+                <button class="pin-btn" onclick="toggleSidebar()">Pin</button>
+                <button class="hamburger" onclick="toggleSidebarMobile()">☰</button>
+            </div>
+            <ul>
+                <li><a href="#" onclick="showSection('notes')">Notes</a></li>
+                <li><a href="#" onclick="showSection('add-option')">Add Option</a></li>
+                <li><a href="#" onclick="showSection('manage-users')">Manage Users</a></li>
+                <li><a href="#" onclick="showSection('manage-roles')">Manage Roles</a></li>
+                <li><a href="#" onclick="showSection('smtp-settings')">SMTP Settings</a></li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content" id="mainContent">
+            <!-- Header with Logout -->
+            <div class="header">
+                <a href="/admin/logout" class="logout-btn">Logout</a>
+            </div>
+
+            <!-- Login Form -->
+            <div id="loginForm" style="display: none;">
+                <h2>Login</h2>
+                <form id="emailPasswordForm" onsubmit="handleEmailPassword(event)">
+                    <input type="email" id="email" placeholder="Email" required>
+                    <input type="password" id="password" placeholder="Password" required>
+                    <button type="submit">Next</button>
+                </form>
+                <form id="totpForm" style="display: none;" onsubmit="handleTotp(event)">
+                    <input type="text" id="totp" placeholder="2FA Code" required>
+                    <button type="submit">Login</button>
+                </form>
+            </div>
+
+            <!-- Password Reset Form -->
+            <div id="resetPasswordForm" style="display: none;">
+                <h2>Reset Password</h2>
+                <form onsubmit="handlePasswordReset(event)">
+                    <input type="password" id="newPassword" placeholder="New Password" required>
+                    <input type="password" id="confirmPassword" placeholder="Confirm Password" required>
+                    <button type="submit">Reset Password</button>
+                </form>
+            </div>
+
+            <!-- Dashboard Sections -->
+            <div id="dashboard" style="display: none;">
+                <!-- Notes Section -->
+                <div id="notes" class="section" style="display: none;">
+                    <h2>Notes (Last 24 Hours)</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Content</th>
+                                <th>Created At</th>
+                                <th>Destroyed At</th>
+                                <th>Password</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="notesTable"></tbody>
+                    </table>
+                </div>
+
+                <!-- Add Option Section -->
+                <div id="add-option" class="section" style="display: none;">
+                    <h2>Add Option</h2>
+                    <form onsubmit="addOption(event)">
+                        <select id="optionType" required>
+                            <option value="destruction">Destruction Setting</option>
+                            <option value="expiration">Expiration Time</option>
+                        </select>
+                        <input type="text" id="optionValue" placeholder="New option value" required>
+                        <button type="submit">Add Option</button>
+                    </form>
+                </div>
+
+                <!-- Manage Users Section -->
+                <div id="manage-users" class="section" style="display: none;">
+                    <h2>Manage Admin Users</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Force 2FA</th>
+                                <th>2FA Setup</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTable"></tbody>
+                    </table>
+
+                    <h2>Add Admin User</h2>
+                    <form onsubmit="addUser(event)">
+                        <input type="email" id="newEmail" placeholder="Email" required>
+                        <select id="newRole" required></select>
+                        <label>
+                            <input type="checkbox" id="force2FA"> Force 2FA
+                        </label>
+                        <button type="submit">Add User</button>
+                    </form>
+
+                    <h2>Edit Admin User</h2>
+                    <form id="editUserForm" style="display: none;" onsubmit="editUser(event)">
+                        <input type="hidden" id="editUserId">
+                        <input type="email" id="editUserEmail" placeholder="Email" required>
+                        <select id="editUserRole" required></select>
+                        <label>
+                            <input type="checkbox" id="editUserForce2FA"> Force 2FA
+                        </label>
+                        <button type="submit">Update User</button>
+                    </form>
+                </div>
+
+                <!-- Manage Roles Section -->
+                <div id="manage-roles" class="section" style="display: none;">
+                    <h2>Manage Roles</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Can View</th>
+                                <th>Can Delete</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rolesTable"></tbody>
+                    </table>
+
+                    <h2>Add Role</h2>
+                    <form onsubmit="addRole(event)">
+                        <input type="text" id="roleName" placeholder="Role Name" required>
+                        <label>
+                            <input type="checkbox" id="canView"> Can View
+                        </label>
+                        <label>
+                            <input type="checkbox" id="canDelete"> Can Delete
+                        </label>
+                        <button type="submit">Add Role</button>
+                    </form>
+
+                    <h2>Edit Role</h2>
+                    <form id="editRoleForm" style="display: none;" onsubmit="editRole(event)">
+                        <input type="hidden" id="editRoleId">
+                        <input type="text" id="editRoleName" placeholder="Role Name" required>
+                        <label>
+                            <input type="checkbox" id="editRoleCanView"> Can View
+                        </label>
+                        <label>
+                            <input type="checkbox" id="editRoleCanDelete"> Can Delete
+                        </label>
+                        <button type="submit">Update Role</button>
+                    </form>
+                </div>
+
+                <!-- SMTP Settings Section -->
+                <div id="smtp-settings" class="section" style="display: none;">
+                    <h2>SMTP Settings</h2>
+                    <form onsubmit="updateSMTPSettings(event)">
+                        <input type="text" id="smtpHost" placeholder="SMTP Host" required>
+                        <input type="number" id="smtpPort" placeholder="SMTP Port" required>
+                        <input type="text" id="smtpUsername" placeholder="SMTP Username">
+                        <input type="password" id="smtpPassword" placeholder="SMTP Password">
+                        <input type="email" id="smtpFromEmail" placeholder="From Email" required>
+                        <button type="submit">Save SMTP Settings</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="/script.js"></script>
+</body>
+</html>
